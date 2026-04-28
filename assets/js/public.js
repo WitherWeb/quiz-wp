@@ -164,6 +164,7 @@
                                 descriptionHtml +
                             '</div>' +
                             contentHtml +
+                            '<div class="quiz-wp-mobile-discount">' + renderMobileDiscount(discountLabel) + '</div>' +
                             '<div class="quiz-wp-footer-row">' +
                                 '<div class="quiz-wp-progress-wrap">' +
                                     '<div class="quiz-wp-progress-meta"><span>\u0412\u043e\u043f\u0440\u043e\u0441 ' + (state.step + 1) + ' \u0438\u0437 ' + data.stages.length + '</span><span>' + progress + '%</span></div>' +
@@ -172,7 +173,7 @@
                                 '<div class="quiz-wp-nav-actions">' +
                                     (state.history.length > 0 ? '<button type="button" class="quiz-wp-link-button quiz-wp-prev">' + renderIcon('back') + '<span>\u041d\u0430\u0437\u0430\u0434</span></button>' : '') +
                                     '<button type="button" class="quiz-wp-btn quiz-wp-btn--primary quiz-wp-next' + (isStepComplete(stage, state.step) ? '' : ' is-muted') + '">' +
-                                        '<span>' + (state.step === data.stages.length - 1 ? '\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442' : '\u0414\u0430\u043b\u0435\u0435') + '</span>' +
+                                        '<span>' + (state.step === data.stages.length - 1 ? '\u0423\u0437\u043d\u0430\u0442\u044c \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442' : '\u0414\u0430\u043b\u0435\u0435') + '</span>' +
                                         '<span class="quiz-wp-btn-icon">' + renderIcon('arrow') + '</span>' +
                                     '</button>' +
                                 '</div>' +
@@ -607,6 +608,14 @@
                         '</div>' +
                         '<div class="quiz-wp-side-expert-quote">' + renderHtml(expert.quote) + '</div>' +
                     '</div>' +
+                '</div>';
+        }
+
+        function renderMobileDiscount(discount) {
+            return '' +
+                '<div class="quiz-wp-mobile-discount-card">' +
+                    '<span class="quiz-wp-mobile-discount-icon">' + renderIcon('percent') + '</span>' +
+                    '<strong>\u0412\u0430\u0448\u0430 \u0441\u043a\u0438\u0434\u043a\u0430: ' + escapeHtml(discount) + '</strong>' +
                 '</div>';
         }
 
