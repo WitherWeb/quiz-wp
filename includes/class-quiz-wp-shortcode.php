@@ -17,6 +17,10 @@ class Shortcode
     {
         $atts = shortcode_atts([
             'id' => 0,
+            'modal' => '0',
+            'button_label' => __('Пройти тест', 'quiz-wp'),
+            'button_class' => '',
+            'trigger' => 'auto',
         ], $atts, 'quiz_wp');
 
         $quiz_id = absint($atts['id']);
@@ -88,6 +92,16 @@ class Shortcode
                 ],
             ],
             'thanks' => [
+                'title' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_title', true),
+                'text' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_text', true),
+                'imageUrl' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_image_url', true),
+                'bonusesTitle' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_bonuses_title', true),
+                'discountTitle' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_discount_title', true),
+                'discountNote' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_discount_note', true),
+                'bookTitle' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_book_title', true),
+                'bookNote' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_book_note', true),
+                'card1ImageUrl' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_card_1_image_url', true),
+                'card2ImageUrl' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_card_2_image_url', true),
                 'reviewLabel' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_review_label', true),
                 'reviewUrl' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_review_url', true),
                 'rentLabel' => (string) get_post_meta($quiz_id, '_quiz_wp_thanks_rent_label', true),
@@ -111,14 +125,48 @@ class Shortcode
 
         $intro = self::prepare_intro_data($data);
 
+        $is_modal = self::is_truthy((string) $atts['modal']);
+        $app_attrs = 'class="quiz-wp-app" data-quiz="' . esc_attr(wp_json_encode($data)) . '"';
+        if ($is_modal) {
+            $app_attrs = 'class="quiz-wp-app" data-quiz-mode="modal" data-quiz="' . esc_attr(wp_json_encode($data)) . '"';
+        }
+
         ob_start();
-        ?>
-        <div class="quiz-wp-app" data-quiz="<?php echo esc_attr(wp_json_encode($data)); ?>">
-            <?php echo self::render_intro_markup($intro); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-            <template class="quiz-wp-cf7-template"><?php echo $cf7_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></template>
-        </div>
-        <?php
+
+        if ($is_modal) {
+            $modal_id = 'quiz-wp-modal-' . $quiz_id . '-' . wp_unique_id();
+            $trigger_mode = strtolower(trim((string) $atts['trigger']));
+            $show_trigger = ! in_array($trigger_mode, ['none', 'manual', 'false', '0'], true);
+            ?>
+            <?php if ($show_trigger) : ?>
+                <button type="button" class="quiz-wp-modal-trigger <?php echo esc_attr((string) $atts['button_class']); ?>" data-quiz-wp-modal-target="#<?php echo esc_attr($modal_id); ?>">
+                    <?php echo esc_html((string) $atts['button_label']); ?>
+                </button>
+            <?php endif; ?>
+            <div class="quiz-wp-modal-overlay" id="<?php echo esc_attr($modal_id); ?>" data-quiz-wp-modal-id="<?php echo esc_attr((string) $quiz_id); ?>" aria-hidden="true">
+                <div class="quiz-wp-modal-dialog" role="dialog" aria-modal="true">
+                    <div <?php echo $app_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+                        <?php echo self::render_intro_markup($intro); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        <template class="quiz-wp-cf7-template"><?php echo $cf7_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></template>
+                    </div>
+                </div>
+            </div>
+            <?php
+        } else {
+            ?>
+            <div <?php echo $app_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+                <?php echo self::render_intro_markup($intro); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                <template class="quiz-wp-cf7-template"><?php echo $cf7_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></template>
+            </div>
+            <?php
+        }
+
         return (string) ob_get_clean();
+    }
+
+    private static function is_truthy(string $value): bool
+    {
+        return in_array(strtolower(trim($value)), ['1', 'true', 'yes', 'on'], true);
     }
 
     private static function prepare_intro_data(array $data): array

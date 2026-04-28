@@ -649,6 +649,57 @@
             $('#quiz-wp-side-expert-avatar-preview-wrapper').html(renderImagePreview('', 'Превью аватарки отзыва'));
             $('#quiz-wp-select-side-expert-avatar').text('Выбрать аватарку');
         });
+        function bindSimpleImageField(config) {
+            $('#' + config.select).on('click', function () {
+                openMediaFrame(function (media) {
+                    $('#' + config.id).val(media.id);
+                    $('#' + config.url).val(media.url);
+                    $('#' + config.preview).html(renderImagePreview(media.url, config.alt));
+                    $('#' + config.select).text('Заменить изображение');
+                });
+            });
+
+            $('#' + config.url).on('input', function () {
+                var url = $(this).val();
+                $('#' + config.id).val(0);
+                $('#' + config.preview).html(renderImagePreview(url, config.alt));
+                $('#' + config.select).text(url ? 'Заменить изображение' : 'Выбрать изображение');
+            });
+
+            $('#' + config.clear).on('click', function () {
+                $('#' + config.id).val(0);
+                $('#' + config.url).val('');
+                $('#' + config.preview).html(renderImagePreview('', config.alt));
+                $('#' + config.select).text('Выбрать изображение');
+            });
+        }
+
+        bindSimpleImageField({
+            select: 'quiz-wp-select-thanks-image',
+            clear: 'quiz-wp-clear-thanks-image',
+            id: 'quiz_wp_thanks_image_id',
+            url: 'quiz_wp_thanks_image_url',
+            preview: 'quiz-wp-thanks-image-preview-wrapper',
+            alt: 'Превью изображения экрана спасибо'
+        });
+
+        bindSimpleImageField({
+            select: 'quiz-wp-select-thanks-card-1-image',
+            clear: 'quiz-wp-clear-thanks-card-1-image',
+            id: 'quiz_wp_thanks_card_1_image_id',
+            url: 'quiz_wp_thanks_card_1_image_url',
+            preview: 'quiz-wp-thanks-card-1-image-preview-wrapper',
+            alt: 'Превью нижней карточки 1'
+        });
+
+        bindSimpleImageField({
+            select: 'quiz-wp-select-thanks-card-2-image',
+            clear: 'quiz-wp-clear-thanks-card-2-image',
+            id: 'quiz_wp_thanks_card_2_image_id',
+            url: 'quiz_wp_thanks_card_2_image_url',
+            preview: 'quiz-wp-thanks-card-2-image-preview-wrapper',
+            alt: 'Превью нижней карточки 2'
+        });
     });
 })(jQuery);
 

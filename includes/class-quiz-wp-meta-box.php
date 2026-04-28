@@ -144,6 +144,19 @@ class Meta_Box
         $thanks_rent_url = (string) get_post_meta($post->ID, '_quiz_wp_thanks_rent_url', true);
         $thanks_book_label = (string) get_post_meta($post->ID, '_quiz_wp_thanks_book_label', true);
         $thanks_book_url = (string) get_post_meta($post->ID, '_quiz_wp_thanks_book_url', true);
+        $thanks_title = (string) get_post_meta($post->ID, '_quiz_wp_thanks_title', true);
+        $thanks_text = (string) get_post_meta($post->ID, '_quiz_wp_thanks_text', true);
+        $thanks_image_id = (int) get_post_meta($post->ID, '_quiz_wp_thanks_image_id', true);
+        $thanks_image_url = (string) get_post_meta($post->ID, '_quiz_wp_thanks_image_url', true);
+        $thanks_bonuses_title = (string) get_post_meta($post->ID, '_quiz_wp_thanks_bonuses_title', true);
+        $thanks_discount_title = (string) get_post_meta($post->ID, '_quiz_wp_thanks_discount_title', true);
+        $thanks_discount_note = (string) get_post_meta($post->ID, '_quiz_wp_thanks_discount_note', true);
+        $thanks_book_title = (string) get_post_meta($post->ID, '_quiz_wp_thanks_book_title', true);
+        $thanks_book_note = (string) get_post_meta($post->ID, '_quiz_wp_thanks_book_note', true);
+        $thanks_card_1_image_id = (int) get_post_meta($post->ID, '_quiz_wp_thanks_card_1_image_id', true);
+        $thanks_card_1_image_url = (string) get_post_meta($post->ID, '_quiz_wp_thanks_card_1_image_url', true);
+        $thanks_card_2_image_id = (int) get_post_meta($post->ID, '_quiz_wp_thanks_card_2_image_id', true);
+        $thanks_card_2_image_url = (string) get_post_meta($post->ID, '_quiz_wp_thanks_card_2_image_url', true);
         $final_title = (string) get_post_meta($post->ID, '_quiz_wp_final_title', true);
         $final_text = (string) get_post_meta($post->ID, '_quiz_wp_final_text', true);
         $cf7_form_id = (int) get_post_meta($post->ID, '_quiz_wp_cf7_form_id', true);
@@ -254,6 +267,54 @@ class Meta_Box
         echo '</div>';
 
         echo '<div class="quiz-wp-field-block">';
+        echo '<div class="quiz-wp-field-block">';
+        echo '<p><strong>' . esc_html__('Контент экрана спасибо', 'quiz-wp') . '</strong></p>';
+        echo '<input type="text" class="widefat" id="quiz_wp_thanks_title" name="quiz_wp_thanks_title" value="' . esc_attr($thanks_title) . '" placeholder="Спасибо!">';
+        echo '<textarea class="widefat" rows="3" id="quiz_wp_thanks_text" name="quiz_wp_thanks_text" placeholder="Ваши данные отправлены..." style="margin-top:8px;">' . esc_textarea($thanks_text) . '</textarea>';
+        echo '</div>';
+
+        echo '<div class="quiz-wp-field-block">';
+        echo '<p><strong>' . esc_html__('Верхнее изображение экрана спасибо', 'quiz-wp') . '</strong></p>';
+        echo '<div class="quiz-wp-image-row">';
+        echo '<input type="hidden" id="quiz_wp_thanks_image_id" name="quiz_wp_thanks_image_id" value="' . esc_attr((string) $thanks_image_id) . '">';
+        echo '<input type="url" class="widefat" id="quiz_wp_thanks_image_url" name="quiz_wp_thanks_image_url" value="' . esc_attr($thanks_image_url) . '" placeholder="' . esc_attr__('URL изображения', 'quiz-wp') . '">';
+        echo '<button type="button" class="button" id="quiz-wp-select-thanks-image">' . esc_html($thanks_image_url ? __('Заменить изображение', 'quiz-wp') : __('Выбрать изображение', 'quiz-wp')) . '</button>';
+        echo '<button type="button" class="button" id="quiz-wp-clear-thanks-image">' . esc_html__('Очистить', 'quiz-wp') . '</button>';
+        echo '</div>';
+        echo '<div id="quiz-wp-thanks-image-preview-wrapper">' . wp_kses_post(self::image_preview_markup($thanks_image_url, __('Превью изображения экрана спасибо', 'quiz-wp'))) . '</div>';
+        echo '</div>';
+
+        echo '<div class="quiz-wp-field-block">';
+        echo '<p><strong>' . esc_html__('Бонусы на экране спасибо', 'quiz-wp') . '</strong></p>';
+        echo '<input type="text" class="widefat" id="quiz_wp_thanks_bonuses_title" name="quiz_wp_thanks_bonuses_title" value="' . esc_attr($thanks_bonuses_title) . '" placeholder="Ваши бонусы">';
+        echo '<input type="text" class="widefat" id="quiz_wp_thanks_discount_title" name="quiz_wp_thanks_discount_title" value="' . esc_attr($thanks_discount_title) . '" placeholder="Скидка 3 000 руб" style="margin-top:8px;">';
+        echo '<input type="text" class="widefat" id="quiz_wp_thanks_discount_note" name="quiz_wp_thanks_discount_note" value="' . esc_attr($thanks_discount_note) . '" placeholder="по промокоду «КВИЗ»" style="margin-top:8px;">';
+        echo '<input type="text" class="widefat" id="quiz_wp_thanks_book_title" name="quiz_wp_thanks_book_title" value="' . esc_attr($thanks_book_title) . '" placeholder="Скачать книгу бесплатно" style="margin-top:8px;">';
+        echo '<input type="text" class="widefat" id="quiz_wp_thanks_book_note" name="quiz_wp_thanks_book_note" value="' . esc_attr($thanks_book_note) . '" placeholder="«Боли в спине»" style="margin-top:8px;">';
+        echo '</div>';
+
+        echo '<div class="quiz-wp-field-block">';
+        echo '<p><strong>' . esc_html__('Нижняя карточка спасибо 1', 'quiz-wp') . '</strong></p>';
+        echo '<div class="quiz-wp-image-row">';
+        echo '<input type="hidden" id="quiz_wp_thanks_card_1_image_id" name="quiz_wp_thanks_card_1_image_id" value="' . esc_attr((string) $thanks_card_1_image_id) . '">';
+        echo '<input type="url" class="widefat" id="quiz_wp_thanks_card_1_image_url" name="quiz_wp_thanks_card_1_image_url" value="' . esc_attr($thanks_card_1_image_url) . '" placeholder="' . esc_attr__('URL изображения', 'quiz-wp') . '">';
+        echo '<button type="button" class="button" id="quiz-wp-select-thanks-card-1-image">' . esc_html($thanks_card_1_image_url ? __('Заменить изображение', 'quiz-wp') : __('Выбрать изображение', 'quiz-wp')) . '</button>';
+        echo '<button type="button" class="button" id="quiz-wp-clear-thanks-card-1-image">' . esc_html__('Очистить', 'quiz-wp') . '</button>';
+        echo '</div>';
+        echo '<div id="quiz-wp-thanks-card-1-image-preview-wrapper">' . wp_kses_post(self::image_preview_markup($thanks_card_1_image_url, __('Превью нижней карточки 1', 'quiz-wp'))) . '</div>';
+        echo '</div>';
+
+        echo '<div class="quiz-wp-field-block">';
+        echo '<p><strong>' . esc_html__('Нижняя карточка спасибо 2', 'quiz-wp') . '</strong></p>';
+        echo '<div class="quiz-wp-image-row">';
+        echo '<input type="hidden" id="quiz_wp_thanks_card_2_image_id" name="quiz_wp_thanks_card_2_image_id" value="' . esc_attr((string) $thanks_card_2_image_id) . '">';
+        echo '<input type="url" class="widefat" id="quiz_wp_thanks_card_2_image_url" name="quiz_wp_thanks_card_2_image_url" value="' . esc_attr($thanks_card_2_image_url) . '" placeholder="' . esc_attr__('URL изображения', 'quiz-wp') . '">';
+        echo '<button type="button" class="button" id="quiz-wp-select-thanks-card-2-image">' . esc_html($thanks_card_2_image_url ? __('Заменить изображение', 'quiz-wp') : __('Выбрать изображение', 'quiz-wp')) . '</button>';
+        echo '<button type="button" class="button" id="quiz-wp-clear-thanks-card-2-image">' . esc_html__('Очистить', 'quiz-wp') . '</button>';
+        echo '</div>';
+        echo '<div id="quiz-wp-thanks-card-2-image-preview-wrapper">' . wp_kses_post(self::image_preview_markup($thanks_card_2_image_url, __('Превью нижней карточки 2', 'quiz-wp'))) . '</div>';
+        echo '</div>';
+
         echo '<p><label for="quiz_wp_thanks_review_label"><strong>' . esc_html__('Кнопка 1 на экране спасибо', 'quiz-wp') . '</strong></label></p>';
         echo '<input type="text" class="widefat" id="quiz_wp_thanks_review_label" name="quiz_wp_thanks_review_label" value="' . esc_attr($thanks_review_label) . '" placeholder="Посмотреть отзывы о Detensor">';
         echo '<input type="url" class="widefat" id="quiz_wp_thanks_review_url" name="quiz_wp_thanks_review_url" value="' . esc_attr($thanks_review_url) . '" placeholder="https://example.com/reviews" style="margin-top:8px;">';
@@ -479,6 +540,19 @@ class Meta_Box
         update_post_meta($post_id, '_quiz_wp_contact_title', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_contact_title'] ?? '')));
         update_post_meta($post_id, '_quiz_wp_contact_text', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_contact_text'] ?? '')));
         update_post_meta($post_id, '_quiz_wp_contact_note', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_contact_note'] ?? '')));
+        update_post_meta($post_id, '_quiz_wp_thanks_title', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_thanks_title'] ?? '')));
+        update_post_meta($post_id, '_quiz_wp_thanks_text', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_thanks_text'] ?? '')));
+        update_post_meta($post_id, '_quiz_wp_thanks_image_id', absint($_POST['quiz_wp_thanks_image_id'] ?? 0));
+        update_post_meta($post_id, '_quiz_wp_thanks_image_url', esc_url_raw(wp_unslash($_POST['quiz_wp_thanks_image_url'] ?? '')));
+        update_post_meta($post_id, '_quiz_wp_thanks_bonuses_title', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_thanks_bonuses_title'] ?? '')));
+        update_post_meta($post_id, '_quiz_wp_thanks_discount_title', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_thanks_discount_title'] ?? '')));
+        update_post_meta($post_id, '_quiz_wp_thanks_discount_note', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_thanks_discount_note'] ?? '')));
+        update_post_meta($post_id, '_quiz_wp_thanks_book_title', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_thanks_book_title'] ?? '')));
+        update_post_meta($post_id, '_quiz_wp_thanks_book_note', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_thanks_book_note'] ?? '')));
+        update_post_meta($post_id, '_quiz_wp_thanks_card_1_image_id', absint($_POST['quiz_wp_thanks_card_1_image_id'] ?? 0));
+        update_post_meta($post_id, '_quiz_wp_thanks_card_1_image_url', esc_url_raw(wp_unslash($_POST['quiz_wp_thanks_card_1_image_url'] ?? '')));
+        update_post_meta($post_id, '_quiz_wp_thanks_card_2_image_id', absint($_POST['quiz_wp_thanks_card_2_image_id'] ?? 0));
+        update_post_meta($post_id, '_quiz_wp_thanks_card_2_image_url', esc_url_raw(wp_unslash($_POST['quiz_wp_thanks_card_2_image_url'] ?? '')));
         update_post_meta($post_id, '_quiz_wp_thanks_review_label', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_thanks_review_label'] ?? '')));
         update_post_meta($post_id, '_quiz_wp_thanks_review_url', esc_url_raw(wp_unslash($_POST['quiz_wp_thanks_review_url'] ?? '')));
         update_post_meta($post_id, '_quiz_wp_thanks_rent_label', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_thanks_rent_label'] ?? '')));

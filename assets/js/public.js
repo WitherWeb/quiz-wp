@@ -21,7 +21,9 @@
 
         var cf7Template = app.querySelector('.quiz-wp-cf7-template');
         var cf7Markup = cf7Template ? cf7Template.innerHTML : '';
-        var isEmbeddedPopup = !!app.closest('.modal__window, [data-modal], .modal-main');
+        var quizModalOverlay = app.closest('.quiz-wp-modal-overlay');
+        var isQuizModal = app.dataset.quizMode === 'modal' && !!quizModalOverlay;
+        var isEmbeddedPopup = !isQuizModal && !!app.closest('.modal__window, [data-modal], .modal-main');
         var state = {
             screen: 'intro',
             step: 0,
@@ -69,6 +71,17 @@
         function restoreInitialMarkup() {
             resetQuiz();
             renderIntro();
+        }
+
+        function closeQuizModal() {
+            resetQuiz();
+            renderIntro();
+
+            if (quizModalOverlay) {
+                quizModalOverlay.classList.remove('is-open');
+                quizModalOverlay.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('quiz-wp-modal-open');
+            }
         }
 
         function renderIntro() {
@@ -330,31 +343,32 @@
             var thanks = getThanksData();
             var discountLabel = String(data.discountLabel || '\u0434\u043e 3000 \u0440\u0443\u0431');
             var catalogLabel = String(thanks.reviewLabel || '\u041f\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u043a\u0430\u0442\u0430\u043b\u043e\u0433');
+            var thanksMediaStyle = thanks.imageUrl ? ' style="background-image:url(' + escapeAttr(thanks.imageUrl) + ')"' : '';
 
             app.innerHTML = '' +
                 '<div class="quiz-wp-shell">' +
                     '<div class="quiz-wp-modal quiz-wp-modal--thanks">' +
                         renderCloseButton() +
-                        '<div class="quiz-wp-thanks-media"></div>' +
+                        '<div class="quiz-wp-thanks-media' + (thanks.imageUrl ? ' has-image' : '') + '"' + thanksMediaStyle + '></div>' +
                         '<div class="quiz-wp-thanks-content">' +
                             '<div class="quiz-wp-thanks-check">' + renderIcon('success') + '</div>' +
-                            '<h3 class="quiz-wp-title quiz-wp-title--thanks">\u0421\u043f\u0430\u0441\u0438\u0431\u043e!</h3>' +
-                            '<p class="quiz-wp-muted quiz-wp-thanks-copy">\u0412\u0430\u0448\u0438 \u0434\u0430\u043d\u043d\u044b\u0435 \u043e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u044b. \u0421\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442 Detensor \u0441\u0432\u044f\u0436\u0435\u0442\u0441\u044f \u0441 \u0432\u0430\u043c\u0438 \u0438 \u0440\u0430\u0441\u0441\u043a\u0430\u0436\u0435\u0442, \u043a\u0430\u043a\u0430\u044f \u0441\u0438\u0441\u0442\u0435\u043c\u0430 \u043b\u0435\u0447\u0435\u043d\u0438\u044f \u043f\u043e\u0434\u043e\u0439\u0434\u0451\u0442 \u0438\u043c\u0435\u043d\u043d\u043e \u0432\u0430\u043c.</p>' +
+                            '<h3 class="quiz-wp-title quiz-wp-title--thanks">' + renderHtml(thanks.title) + '</h3>' +
+                            '<p class="quiz-wp-muted quiz-wp-thanks-copy">' + renderHtml(thanks.text) + '</p>' +
                             '<div class="quiz-wp-thanks-bonuses">' +
-                                '<strong>\u0412\u0430\u0448\u0438 \u0431\u043e\u043d\u0443\u0441\u044b</strong>' +
+                                '<strong>' + renderHtml(thanks.bonusesTitle) + '</strong>' +
                                 '<div class="quiz-wp-thanks-bonus-row">' +
                                     '<span class="quiz-wp-thanks-bonus-icon">' + renderIcon('percent') + '</span>' +
-                                    '<span><b>\u0421\u043a\u0438\u0434\u043a\u0430 ' + escapeHtml(discountLabel) + '</b><small>\u043f\u043e \u043f\u0440\u043e\u043c\u043e\u043a\u043e\u0434\u0443 \u00ab\u041a\u0412\u0418\u0417\u00bb</small></span>' +
+                                    '<span><b>' + renderHtml(thanks.discountTitle || ('\u0421\u043a\u0438\u0434\u043a\u0430 ' + discountLabel)) + '</b><small>' + renderHtml(thanks.discountNote) + '</small></span>' +
                                 '</div>' +
                                 '<div class="quiz-wp-thanks-bonus-row">' +
                                     '<span class="quiz-wp-thanks-bonus-icon quiz-wp-thanks-bonus-icon--violet">' + renderIcon('book') + '</span>' +
-                                    '<span><b>' + renderHtml(thanks.bookLabel || '\u0421\u043a\u0430\u0447\u0430\u0442\u044c \u043a\u043d\u0438\u0433\u0443') + '</b><small>\u00ab\u0411\u043e\u043b\u0438 \u0432 \u0441\u043f\u0438\u043d\u0435\u00bb</small></span>' +
+                                    '<span><b>' + renderHtml(thanks.bookTitle) + '</b><small>' + renderHtml(thanks.bookNote) + '</small></span>' +
                                 '</div>' +
                             '</div>' +
                             renderThanksLink(catalogLabel, thanks.reviewUrl, 'catalog') +
                             '<div class="quiz-wp-thanks-promo-grid">' +
-                                renderThanksPromoCard(thanks.rentUrl) +
-                                renderThanksPromoCard(thanks.bookUrl) +
+                                renderThanksPromoCard(thanks.rentUrl, thanks.card1ImageUrl) +
+                                renderThanksPromoCard(thanks.bookUrl, thanks.card2ImageUrl) +
                             '</div>' +
                             '<button type="button" class="quiz-wp-link-button quiz-wp-close-thanks"><span>\u0417\u0430\u043a\u0440\u044b\u0442\u044c</span></button>' +
                         '</div>' +
@@ -557,6 +571,16 @@
             var thanks = data.thanks || {};
 
             return {
+                title: String(thanks.title || '\u0421\u043f\u0430\u0441\u0438\u0431\u043e!'),
+                text: String(thanks.text || '\u0412\u0430\u0448\u0438 \u0434\u0430\u043d\u043d\u044b\u0435 \u043e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u044b. \u0421\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442 Detensor \u0441\u0432\u044f\u0436\u0435\u0442\u0441\u044f \u0441 \u0432\u0430\u043c\u0438 \u0438 \u0440\u0430\u0441\u0441\u043a\u0430\u0436\u0435\u0442, \u043a\u0430\u043a\u0430\u044f \u0441\u0438\u0441\u0442\u0435\u043c\u0430 \u043b\u0435\u0447\u0435\u043d\u0438\u044f \u043f\u043e\u0434\u043e\u0439\u0434\u0451\u0442 \u0438\u043c\u0435\u043d\u043d\u043e \u0432\u0430\u043c.'),
+                imageUrl: String(thanks.imageUrl || ''),
+                bonusesTitle: String(thanks.bonusesTitle || '\u0412\u0430\u0448\u0438 \u0431\u043e\u043d\u0443\u0441\u044b'),
+                discountTitle: String(thanks.discountTitle || ''),
+                discountNote: String(thanks.discountNote || '\u043f\u043e \u043f\u0440\u043e\u043c\u043e\u043a\u043e\u0434\u0443 \u00ab\u041a\u0412\u0418\u0417\u00bb'),
+                bookTitle: String(thanks.bookTitle || thanks.bookLabel || '\u0421\u043a\u0430\u0447\u0430\u0442\u044c \u043a\u043d\u0438\u0433\u0443'),
+                bookNote: String(thanks.bookNote || '\u00ab\u0411\u043e\u043b\u0438 \u0432 \u0441\u043f\u0438\u043d\u0435\u00bb'),
+                card1ImageUrl: String(thanks.card1ImageUrl || ''),
+                card2ImageUrl: String(thanks.card2ImageUrl || ''),
                 reviewLabel: String(thanks.reviewLabel || '\u041f\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u043e\u0442\u0437\u044b\u0432\u044b \u043e Detensor'),
                 reviewUrl: String(thanks.reviewUrl || '#'),
                 rentLabel: String(thanks.rentLabel || '\u0412\u0437\u044f\u0442\u044c \u0432 \u0430\u0440\u0435\u043d\u0434\u0443 \u0437\u0430 299 \u0440\u0443\u0431./\u0434\u0435\u043d\u044c'),
@@ -768,8 +792,9 @@
             return '<a class="quiz-wp-thanks-link quiz-wp-thanks-link--' + mode + '" href="' + escapeAttr(url || '#') + '"' + (url && url !== '#' ? ' target="_blank" rel="noopener"' : '') + '>' + renderHtml(label) + (mode === 'catalog' ? '<span class="quiz-wp-btn-icon">' + renderIcon('arrow') + '</span>' : '') + '</a>';
         }
 
-        function renderThanksPromoCard(url) {
-            return '<a class="quiz-wp-thanks-promo-card" href="' + escapeAttr(url || '#') + '"' + (url && url !== '#' ? ' target="_blank" rel="noopener"' : '') + '></a>';
+        function renderThanksPromoCard(url, imageUrl) {
+            var imageStyle = imageUrl ? ' style="background-image:url(' + escapeAttr(imageUrl) + ')"' : '';
+            return '<a class="quiz-wp-thanks-promo-card' + (imageUrl ? ' has-image' : '') + '" href="' + escapeAttr(url || '#') + '"' + (url && url !== '#' ? ' target="_blank" rel="noopener"' : '') + imageStyle + '></a>';
         }
 
         function renderIntroImage(url) {
@@ -860,6 +885,11 @@
             var close = app.querySelector('.quiz-wp-close');
             if (close) {
                 close.addEventListener('click', function () {
+                    if (isQuizModal) {
+                        closeQuizModal();
+                        return;
+                    }
+
                     restoreInitialMarkup();
                 });
             }
@@ -955,6 +985,7 @@
             }
         });
 
+        app._quizWpReset = restoreInitialMarkup;
         render();
     }
 
@@ -965,8 +996,74 @@
         });
     }
 
+    function openQuizModal(overlay) {
+        if (!overlay) {
+            return;
+        }
+
+        overlay.classList.add('is-open');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('quiz-wp-modal-open');
+        initAllQuizApps(overlay);
+
+        var app = overlay.querySelector('.quiz-wp-app');
+        if (app && typeof app._quizWpReset === 'function') {
+            app._quizWpReset();
+        }
+    }
+
+    function closeQuizModalOverlay(overlay) {
+        if (!overlay) {
+            return;
+        }
+
+        overlay.classList.remove('is-open');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('quiz-wp-modal-open');
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         initAllQuizApps(document);
+    });
+
+    document.addEventListener('click', function (event) {
+        var trigger = event.target.closest ? event.target.closest('.quiz-wp-modal-trigger') : null;
+        if (trigger) {
+            var target = trigger.getAttribute('data-quiz-wp-modal-target');
+            var overlay = target ? document.querySelector(target) : null;
+            event.preventDefault();
+            openQuizModal(overlay);
+            return;
+        }
+
+        var externalTrigger = event.target.closest ? event.target.closest('[data-quiz-wp-open]') : null;
+        if (externalTrigger) {
+            var quizId = externalTrigger.getAttribute('data-quiz-wp-open');
+            var externalOverlay = null;
+            document.querySelectorAll('.quiz-wp-modal-overlay[data-quiz-wp-modal-id]').forEach(function (candidate) {
+                if (!externalOverlay && candidate.getAttribute('data-quiz-wp-modal-id') === quizId) {
+                    externalOverlay = candidate;
+                }
+            });
+            event.preventDefault();
+            openQuizModal(externalOverlay);
+            return;
+        }
+
+        var overlay = event.target.classList && event.target.classList.contains('quiz-wp-modal-overlay') ? event.target : null;
+        if (overlay) {
+            closeQuizModalOverlay(overlay);
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') {
+            return;
+        }
+
+        document.querySelectorAll('.quiz-wp-modal-overlay.is-open').forEach(function (overlay) {
+            closeQuizModalOverlay(overlay);
+        });
     });
 
     var observer = new MutationObserver(function (mutations) {
