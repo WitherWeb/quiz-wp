@@ -29,6 +29,8 @@
             step: 0,
             history: [],
             answers: [],
+            productOptions: [],
+            selectedProduct: null,
             submitted: false
         };
 
@@ -52,6 +54,16 @@
                 return;
             }
 
+            if (state.screen === 'productChoice') {
+                renderProductChoice();
+                return;
+            }
+
+            if (state.screen === 'productResult') {
+                renderProductResult();
+                return;
+            }
+
             if (state.screen === 'thanks') {
                 renderThanks();
                 return;
@@ -65,6 +77,8 @@
             state.step = 0;
             state.history = [];
             state.answers = [];
+            state.productOptions = [];
+            state.selectedProduct = null;
             state.submitted = false;
         }
 
@@ -129,6 +143,8 @@
             var rightItems = intro.bonusItems.slice(0, 2);
             var contentHtml = '';
             var discountLabel = String(data.discountLabel || '\u0434\u043e 3000\u20bd');
+            var answerStyle = stage.answer_style === 'controls' ? 'controls' : 'default';
+            var selectionStyle = isMultiple ? 'multiple' : 'single';
             var showPickHint = !(String(stage.show_pick_hint) === '0' || stage.show_pick_hint === false);
             var showDescription = !(String(stage.show_description) === '0' || stage.show_description === false);
             var pickHintText = String(stage.pick_hint_text || (isFieldsStage ? '\u0443\u043a\u0430\u0436\u0438\u0442\u0435 \u0441\u0432\u043e\u0438 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u044b' : '\u0432\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043e\u0434\u0438\u043d \u0438\u043b\u0438 \u043d\u0435\u0441\u043a\u043e\u043b\u044c\u043a\u043e'));
@@ -151,7 +167,7 @@
                         '</label>';
                 }).join('') + '</div>';
             } else {
-                contentHtml = '<div class="quiz-wp-answer-grid" style="--quiz-grid-columns:' + (parseInt(stage.grid_columns, 10) || 4) + '">' +
+                contentHtml = '<div class="quiz-wp-answer-grid quiz-wp-answer-grid--' + answerStyle + ' quiz-wp-answer-grid--' + selectionStyle + '" style="--quiz-grid-columns:' + (parseInt(stage.grid_columns, 10) || 4) + '">' +
                     (stage.options || []).map(function (option, index) {
                         var optionValue = String(option.value || option.label || ('option-' + index));
                         var optionLabel = String(option.label || optionValue);
@@ -224,7 +240,7 @@
                 state.history.push(state.step);
 
                 if (nextStep >= data.stages.length) {
-                    state.screen = 'result';
+                    state.screen = data.productFlow ? 'contact' : 'result';
                 } else {
                     state.step = nextStep;
                 }
@@ -330,11 +346,90 @@
             if (defaultForm) {
                 defaultForm.addEventListener('submit', function (event) {
                     event.preventDefault();
-                    state.screen = 'thanks';
-                    state.submitted = true;
-                    render();
+                    handleContactSubmitted();
                 });
             }
+
+            bindClose();
+        }
+
+        function handleContactSubmitted() {
+            state.submitted = true;
+
+            if (data.productFlow) {
+                state.productOptions = calculateProductOptions();
+                state.selectedProduct = state.productOptions[0] || getProductHardnessData('2');
+                state.screen = state.productOptions.length > 1 ? 'productChoice' : 'productResult';
+            } else {
+                state.screen = 'thanks';
+            }
+
+            render();
+        }
+
+        function renderProductChoice() {
+            var options = state.productOptions && state.productOptions.length ? state.productOptions : calculateProductOptions();
+            state.productOptions = options;
+
+            app.innerHTML = '' +
+                '<div class="quiz-wp-shell">' +
+                    '<div class="quiz-wp-modal quiz-wp-modal--product-choice">' +
+                        renderCloseButton() +
+                        '<div class="quiz-wp-product-choice-head">' +
+                            '<h3 class="quiz-wp-title quiz-wp-title--product-choice">\u041c\u044b \u043f\u043e\u0434\u043e\u0431\u0440\u0430\u043b\u0438 ' + options.length + ' \u0432\u0430\u0440\u0438\u0430\u043d\u0442\u0430</h3>' +
+                            '<p>\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u043e\u0434\u0445\u043e\u0434\u044f\u0449\u0438\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442 \u041b\u0435\u0447\u0435\u0431\u043d\u043e\u0433\u043e \u0442\u0440\u0430\u043a\u0446\u0438\u043e\u043d\u043d\u043e\u0433\u043e \u043c\u0430\u0442\u0430 \u0414\u0435\u0442\u0435\u043d\u0437\u043e\u0440 18%</p>' +
+                        '</div>' +
+                        '<div class="quiz-wp-product-grid">' + options.map(renderProductCard).join('') + '</div>' +
+                    '</div>' +
+                '</div>';
+
+            app.querySelectorAll('.quiz-wp-product-select').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var hardness = button.getAttribute('data-hardness') || '2';
+                    state.selectedProduct = getProductHardnessData(hardness);
+                    state.screen = 'productResult';
+                    render();
+                });
+            });
+
+            bindClose();
+        }
+
+        function renderProductResult() {
+            var product = state.selectedProduct || (state.productOptions && state.productOptions[0]) || getProductHardnessData('2');
+            var thanks = getThanksData();
+            var imageUrl = product.imageUrl || thanks.imageUrl || '';
+            var imageStyle = imageUrl ? ' style="background-image:url(' + escapeAttr(imageUrl) + ')"' : '';
+            var catalogLabel = String(thanks.reviewLabel || '\u041f\u0435\u0440\u0435\u0439\u0442\u0438 \u0432 \u043a\u0430\u0442\u0430\u043b\u043e\u0433');
+
+            app.innerHTML = '' +
+                '<div class="quiz-wp-shell">' +
+                    '<div class="quiz-wp-modal quiz-wp-modal--product-result">' +
+                        renderCloseButton() +
+                        '<div class="quiz-wp-product-result-media' + (imageUrl ? ' has-image' : '') + '"' + imageStyle + '></div>' +
+                        '<div class="quiz-wp-product-result-content">' +
+                            '<h3 class="quiz-wp-title quiz-wp-title--product-result">\u0412\u0430\u0448 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442</h3>' +
+                            '<p class="quiz-wp-product-result-lead">\u041d\u0430 \u043e\u0441\u043d\u043e\u0432\u0430\u043d\u0438\u0438 \u0432\u0430\u0448\u0438\u0445 \u043e\u0442\u0432\u0435\u0442\u043e\u0432 \u043c\u044b \u043f\u043e\u0434\u043e\u0431\u0440\u0430\u043b\u0438<br>\u043e\u043f\u0442\u0438\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442 —</p>' +
+                            '<h4>' + renderHtml(product.fullName) + '</h4>' +
+                            '<div class="quiz-wp-product-recommendation">' +
+                                '<strong>\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u044f \u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442\u0430</strong>' +
+                                '<p>' + renderHtml(product.recommendation) + '</p>' +
+                            '</div>' +
+                            '<div class="quiz-wp-thanks-bonuses quiz-wp-product-bonuses">' +
+                                '<strong>' + renderHtml(thanks.bonusesTitle) + '</strong>' +
+                                '<div class="quiz-wp-thanks-bonus-row">' +
+                                    '<span class="quiz-wp-thanks-bonus-icon">' + renderIcon('percent') + '</span>' +
+                                    '<span><b>' + renderHtml(thanks.discountTitle || '\u0421\u043a\u0438\u0434\u043a\u0430 3 000 \u0440\u0443\u0431') + '</b><small>' + renderHtml(thanks.discountNote) + '</small></span>' +
+                                '</div>' +
+                                '<div class="quiz-wp-thanks-bonus-row">' +
+                                    '<span class="quiz-wp-thanks-bonus-icon quiz-wp-thanks-bonus-icon--violet">' + renderIcon('book') + '</span>' +
+                                    '<span><b>' + renderHtml(thanks.bookTitle) + '</b><small>' + renderHtml(thanks.bookNote) + '</small></span>' +
+                                '</div>' +
+                            '</div>' +
+                            renderThanksLink(catalogLabel, thanks.reviewUrl, 'catalog') +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
 
             bindClose();
         }
@@ -588,6 +683,137 @@
                 bookLabel: String(thanks.bookLabel || '\u0421\u043a\u0430\u0447\u0430\u0442\u044c \u043a\u043d\u0438\u0433\u0443 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e'),
                 bookUrl: String(thanks.bookUrl || '#')
             };
+        }
+
+        function calculateProductOptions() {
+            var params = getProductParams();
+            var age = params.age || 35;
+            var weight = params.weight || 75;
+            var height = params.height || 170;
+            var bmi = height > 0 ? weight / Math.pow(height / 100, 2) : 0;
+            var hardness = '2';
+            var options = [];
+
+            if (age < 12 || weight < 18) {
+                options = ['0', '1'];
+            } else if (age < 18 || weight < 60) {
+                options = ['1', '2'];
+            } else if (weight <= 90) {
+                options = ['2'];
+            } else if (weight <= 110) {
+                options = ['2+', '2'];
+            } else {
+                options = ['3'];
+            }
+
+            if (age >= 70 && options.indexOf('3') !== -1) {
+                options = ['2+', '3'];
+            } else if (age >= 70 && options.indexOf('2+') !== -1) {
+                options = ['2', '2+'];
+            }
+
+            if (bmi >= 34 && weight >= 90 && options.indexOf('3') === -1) {
+                options = ['3', options[0] || '2'];
+            } else if (bmi <= 19 && weight <= 65 && options.indexOf('1') === -1) {
+                options = ['2', '1'];
+            }
+
+            options = options.filter(function (value, index, list) {
+                return list.indexOf(value) === index;
+            }).slice(0, 2);
+
+            hardness = options[0] || hardness;
+            options = options.length ? options : [hardness];
+
+            return options.map(function (value, index) {
+                var product = getProductHardnessData(value);
+                product.recommended = index === 0;
+                return product;
+            });
+        }
+
+        function getProductParams() {
+            var text = state.answers.map(function (answer) {
+                return answer && Array.isArray(answer.labels) ? answer.labels.join('\n') : '';
+            }).join('\n');
+            var age = extractNumberByLabel(text, /(?:возраст|лет)/i);
+
+            if (/старше\s*70|больше\s*70|70\+/i.test(text)) {
+                age = 71;
+            } else if (/младше\s*70|до\s*70|менее\s*70/i.test(text)) {
+                age = 69;
+            }
+
+            return {
+                age: age,
+                weight: extractNumberByLabel(text, /(?:вес|кг)/i),
+                height: extractNumberByLabel(text, /(?:рост|см)/i)
+            };
+        }
+
+        function extractNumberByLabel(text, pattern) {
+            var lines = String(text || '').split(/\n+/);
+
+            for (var index = 0; index < lines.length; index += 1) {
+                if (pattern.test(lines[index])) {
+                    var match = String(lines[index]).replace(',', '.').match(/(\d+(?:\.\d+)?)/);
+                    if (match) {
+                        return parseFloat(match[1]);
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        function getProductHardnessData(hardness) {
+            var map = {
+                '0': {
+                    text: '\u0414\u0435\u0442\u0441\u043a\u0438\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442. \u041f\u043e\u0434\u0445\u043e\u0434\u0438\u0442 \u0434\u043b\u044f \u0441\u0430\u043c\u044b\u0445 \u043c\u0430\u043b\u0435\u043d\u044c\u043a\u0438\u0445 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439.',
+                    weight: '\u0434\u043e 8 \u043a\u0433'
+                },
+                '1': {
+                    text: '\u041c\u044f\u0433\u043a\u0438\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442. \u041f\u043e\u0434\u0445\u043e\u0434\u0438\u0442 \u0434\u043b\u044f \u0434\u0435\u0442\u0435\u0439, \u043f\u043e\u0434\u0440\u043e\u0441\u0442\u043a\u043e\u0432 \u0438 \u043b\u044e\u0434\u0435\u0439 \u0441 \u043d\u0435\u0431\u043e\u043b\u044c\u0448\u0438\u043c \u0432\u0435\u0441\u043e\u043c.',
+                    weight: '\u0434\u043e 60 \u043a\u0433'
+                },
+                '2': {
+                    text: '\u0421\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u043d\u044b\u0439 \u0432\u0437\u0440\u043e\u0441\u043b\u044b\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442. \u041e\u043f\u0442\u0438\u043c\u0430\u043b\u044c\u043d\u0430\u044f \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430 \u043f\u043e\u0437\u0432\u043e\u043d\u043e\u0447\u043d\u0438\u043a\u0430.',
+                    weight: '60\u201390 \u043a\u0433'
+                },
+                '2+': {
+                    text: '\u0423\u0441\u0438\u043b\u0435\u043d\u043d\u0430\u044f \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430. \u041f\u043e\u0434\u0445\u043e\u0434\u0438\u0442 \u0434\u043b\u044f \u0441\u043f\u043e\u0440\u0442\u0430 \u0438 \u043f\u043e\u0432\u044b\u0448\u0435\u043d\u043d\u043e\u0439 \u043d\u0430\u0433\u0440\u0443\u0437\u043a\u0438.',
+                    weight: '95\u2013110 \u043a\u0433'
+                },
+                '3': {
+                    text: '\u0416\u0451\u0441\u0442\u043a\u0438\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442 \u0434\u043b\u044f \u043a\u0440\u0443\u043f\u043d\u044b\u0445 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439 \u0438 \u0432\u044b\u0441\u043e\u043a\u043e\u0439 \u043d\u0430\u0433\u0440\u0443\u0437\u043a\u0438.',
+                    weight: '\u0431\u043e\u043b\u0435\u0435 110 \u043a\u0433'
+                }
+            };
+            var product = map[hardness] || map['2'];
+
+            return {
+                hardness: hardness,
+                title: '\u0416\u0451\u0441\u0442\u043a\u043e\u0441\u0442\u044c ' + hardness,
+                fullName: '\u041b\u0435\u0447\u0435\u0431\u043d\u044b\u0439 \u0442\u0440\u0430\u043a\u0446\u0438\u043e\u043d\u043d\u044b\u0439 \u043c\u0430\u0442 \u0414\u0435\u0442\u0435\u043d\u0437\u043e\u0440 18%,<br>\u0416\u0451\u0441\u0442\u043a\u043e\u0441\u0442\u044c ' + hardness,
+                text: product.text,
+                weight: product.weight,
+                recommendation: '\u041b\u0435\u0447\u0435\u0431\u043d\u044b\u0439 \u0442\u0440\u0430\u043a\u0446\u0438\u043e\u043d\u043d\u044b\u0439 \u043c\u0430\u0442 \u0414\u0435\u0442\u0435\u043d\u0437\u043e\u0440 18%, \u0416\u0451\u0441\u0442\u043a\u043e\u0441\u0442\u044c ' + hardness + ' — \u043e\u043f\u0442\u0438\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442 \u0434\u043b\u044f \u0432\u0430\u0448\u0435\u0433\u043e \u0432\u0435\u0441\u0430 \u0438 \u0445\u0430\u0440\u0430\u043a\u0442\u0435\u0440\u0430 \u0431\u043e\u043b\u0438. \u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0443\u0435\u043c\u044b\u0439 \u043a\u0443\u0440\u0441: \u043e\u0442 2 \u043d\u0435\u0434\u0435\u043b\u044c \u0435\u0436\u0435\u0434\u043d\u0435\u0432\u043d\u043e\u0433\u043e \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d\u0438\u044f.',
+                imageUrl: ''
+            };
+        }
+
+        function renderProductCard(product) {
+            return '' +
+                '<article class="quiz-wp-product-card">' +
+                    (product.recommended ? '<span class="quiz-wp-product-badge">\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0443\u0435\u043c\u044b\u0439</span>' : '') +
+                    '<div class="quiz-wp-product-card-media"></div>' +
+                    '<div class="quiz-wp-product-card-body">' +
+                        '<h4>' + renderHtml(product.title) + '</h4>' +
+                        '<p>' + renderHtml(product.text) + '</p>' +
+                        '<small>\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0443\u0435\u043c\u044b\u0439 \u0432\u0435\u0441: ' + renderHtml(product.weight) + '</small>' +
+                        '<button type="button" class="quiz-wp-product-select' + (product.recommended ? ' is-primary' : '') + '" data-hardness="' + escapeAttr(product.hardness) + '">\u0412\u044b\u0431\u0440\u0430\u0442\u044c</button>' +
+                    '</div>' +
+                '</article>';
         }
 
         function renderBonusPanel(discount, items, compact) {
@@ -979,9 +1205,7 @@
         document.addEventListener('wpcf7mailsent', function (event) {
             var form = app.querySelector('.wpcf7 form');
             if (form && event.target === form) {
-                state.screen = 'thanks';
-                state.submitted = true;
-                render();
+                handleContactSubmitted();
             }
         });
 

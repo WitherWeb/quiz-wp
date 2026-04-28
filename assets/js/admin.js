@@ -9,6 +9,7 @@
         stage.fields = Array.isArray(stage.fields) && stage.fields.length ? stage.fields : [cloneDeep(window.QuizWpAdmin.fieldTemplate)];
         stage.grid_columns = parseInt(stage.grid_columns, 10) || 2;
         stage.selection_mode = stage.selection_mode === 'multiple' ? 'multiple' : 'single';
+        stage.answer_style = stage.answer_style === 'controls' ? 'controls' : 'default';
         stage.show_pick_hint = !(String(stage.show_pick_hint) === '0' || stage.show_pick_hint === false);
         stage.show_description = !(String(stage.show_description) === '0' || stage.show_description === false);
         stage.pick_hint_text = stage.pick_hint_text || '';
@@ -127,6 +128,7 @@
             stage_type: $stage.find('.quiz-wp-stage-type').val() || 'options',
             selection_mode: $stage.find('.quiz-wp-selection-mode').val() || 'single',
             grid_columns: parseInt($stage.find('.quiz-wp-grid-columns').val(), 10) || 2,
+            answer_style: $stage.find('.quiz-wp-answer-style').val() || 'default',
             show_pick_hint: $stage.find('.quiz-wp-stage-show-pick-hint').is(':checked'),
             show_description: $stage.find('.quiz-wp-stage-show-description').is(':checked'),
             options: options,
@@ -364,6 +366,13 @@
                                         '<option value="4"' + (String(stage.grid_columns) === '4' ? ' selected' : '') + '>4 колонки</option>' +
                                     '</select>' +
                                 '</div>' +
+                                '<div class="quiz-wp-field-block">' +
+                                    '<label class="quiz-wp-label">Стиль ответов без изображений</label>' +
+                                    '<select class="quiz-wp-answer-style">' +
+                                        '<option value="default"' + (stage.answer_style === 'default' ? ' selected' : '') + '>Стиль 1</option>' +
+                                        '<option value="controls"' + (stage.answer_style === 'controls' ? ' selected' : '') + '>Стиль 2 с чекбоксом/радио</option>' +
+                                    '</select>' +
+                                '</div>' +
                             '</div>' +
                                 '<div class="quiz-wp-stage-type-settings quiz-wp-stage-type-settings--fields' + (stage.stage_type === 'fields' ? '' : ' is-hidden') + '">' +
                                     '<div class="quiz-wp-help">Используйте этот шаг для роста, веса, возраста и других пользовательских параметров.</div>' +
@@ -395,7 +404,7 @@
             $stage.find('.quiz-wp-parameter-fields').append(stage.fields.map(renderFieldCard));
             refreshItemsOrder($stage);
 
-            $stage.on('input change', '.quiz-wp-stage-title, .quiz-wp-stage-pick-hint-text, .quiz-wp-stage-info-text, .quiz-wp-stage-image-url, .quiz-wp-stage-image-id, .quiz-wp-stage-type, .quiz-wp-selection-mode, .quiz-wp-grid-columns, .quiz-wp-stage-show-pick-hint, .quiz-wp-stage-show-description, .quiz-wp-option-label, .quiz-wp-option-value, .quiz-wp-option-next-stage, .quiz-wp-option-image-id, .quiz-wp-option-image-url, .quiz-wp-param-label, .quiz-wp-param-placeholder, .quiz-wp-param-type', function () {
+            $stage.on('input change', '.quiz-wp-stage-title, .quiz-wp-stage-pick-hint-text, .quiz-wp-stage-info-text, .quiz-wp-stage-image-url, .quiz-wp-stage-image-id, .quiz-wp-stage-type, .quiz-wp-selection-mode, .quiz-wp-grid-columns, .quiz-wp-answer-style, .quiz-wp-stage-show-pick-hint, .quiz-wp-stage-show-description, .quiz-wp-option-label, .quiz-wp-option-value, .quiz-wp-option-next-stage, .quiz-wp-option-image-id, .quiz-wp-option-image-url, .quiz-wp-param-label, .quiz-wp-param-placeholder, .quiz-wp-param-type', function () {
                 syncStage($stage, stages, index);
             });
 

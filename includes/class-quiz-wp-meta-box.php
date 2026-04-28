@@ -41,6 +41,7 @@ class Meta_Box
             'stage_type' => 'options',
             'selection_mode' => 'single',
             'grid_columns' => 2,
+            'answer_style' => 'default',
             'show_pick_hint' => 1,
             'show_description' => 1,
             'options' => [self::default_option()],
@@ -159,6 +160,7 @@ class Meta_Box
         $thanks_card_2_image_url = (string) get_post_meta($post->ID, '_quiz_wp_thanks_card_2_image_url', true);
         $final_title = (string) get_post_meta($post->ID, '_quiz_wp_final_title', true);
         $final_text = (string) get_post_meta($post->ID, '_quiz_wp_final_text', true);
+        $product_flow = '1' === (string) get_post_meta($post->ID, '_quiz_wp_product_flow', true);
         $cf7_form_id = (int) get_post_meta($post->ID, '_quiz_wp_cf7_form_id', true);
 
         if (! is_array($intro_benefits) || empty($intro_benefits)) {
@@ -338,6 +340,9 @@ class Meta_Box
         echo '<p><label for="quiz_wp_final_text"><strong>' . esc_html__('Текст результата по умолчанию', 'quiz-wp') . '</strong></label></p>';
         echo '<textarea class="widefat" rows="4" id="quiz_wp_final_text" name="quiz_wp_final_text">' . esc_textarea($final_text) . '</textarea>';
 
+        echo '<p><label><input type="checkbox" name="quiz_wp_product_flow" value="1"' . checked($product_flow, true, false) . '> <strong>После формы показывать подбор жёсткости мата</strong></label></p>';
+        echo '<p class="description">Для второго квиза: после отправки формы будет рассчитана жёсткость по росту, весу и возрасту.</p>';
+
         echo '<p><label for="quiz_wp_cf7_form_id"><strong>' . esc_html__('ID формы Contact Form 7', 'quiz-wp') . '</strong></label></p>';
         echo '<input type="number" class="widefat" id="quiz_wp_cf7_form_id" name="quiz_wp_cf7_form_id" min="0" value="' . esc_attr((string) $cf7_form_id) . '">';
 
@@ -461,6 +466,7 @@ class Meta_Box
                 'stage_type' => 'fields' === ($stage['stage_type'] ?? '') ? 'fields' : 'options',
                 'selection_mode' => 'multiple' === ($stage['selection_mode'] ?? '') ? 'multiple' : 'single',
                 'grid_columns' => $grid_columns,
+                'answer_style' => 'controls' === ($stage['answer_style'] ?? '') ? 'controls' : 'default',
                 'show_pick_hint' => ! empty($stage['show_pick_hint']) ? 1 : 0,
                 'show_description' => ! empty($stage['show_description']) ? 1 : 0,
                 'options' => ! empty($options) ? $options : [self::default_option()],
@@ -561,6 +567,7 @@ class Meta_Box
         update_post_meta($post_id, '_quiz_wp_thanks_book_url', esc_url_raw(wp_unslash($_POST['quiz_wp_thanks_book_url'] ?? '')));
         update_post_meta($post_id, '_quiz_wp_final_title', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_final_title'] ?? '')));
         update_post_meta($post_id, '_quiz_wp_final_text', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_final_text'] ?? '')));
+        update_post_meta($post_id, '_quiz_wp_product_flow', isset($_POST['quiz_wp_product_flow']) ? '1' : '0');
         update_post_meta($post_id, '_quiz_wp_cf7_form_id', absint($_POST['quiz_wp_cf7_form_id'] ?? 0));
     }
 

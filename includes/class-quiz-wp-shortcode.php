@@ -58,6 +58,7 @@ class Shortcode
             'finalTitle' => (string) get_post_meta($quiz_id, '_quiz_wp_final_title', true),
             'finalText' => (string) get_post_meta($quiz_id, '_quiz_wp_final_text', true),
             'hasCf7' => $cf7_form_id > 0,
+            'productFlow' => '1' === (string) get_post_meta($quiz_id, '_quiz_wp_product_flow', true),
             'discountLabel' => (string) get_post_meta($quiz_id, '_quiz_wp_discount_label', true),
             'privacyUrl' => (string) get_post_meta($quiz_id, '_quiz_wp_privacy_url', true),
             'sideExpert' => [
