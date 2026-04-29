@@ -9,6 +9,7 @@ if (! defined('ABSPATH')) {
 require_once QUIZ_WP_PATH . 'includes/class-quiz-wp-post-type.php';
 require_once QUIZ_WP_PATH . 'includes/class-quiz-wp-meta-box.php';
 require_once QUIZ_WP_PATH . 'includes/class-quiz-wp-shortcode.php';
+require_once QUIZ_WP_PATH . 'includes/class-quiz-wp-import-export.php';
 
 class Plugin
 {
@@ -35,6 +36,7 @@ class Plugin
         Post_Type::register();
         Meta_Box::register();
         Shortcode::register();
+        Import_Export::register();
     }
 
     public function enqueue_admin_assets(string $hook): void

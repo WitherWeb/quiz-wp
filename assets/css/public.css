@@ -142,6 +142,7 @@ body.quiz-wp-modal-open {
 
     .quiz-wp-link-button{
         margin-top: auto;
+        display: none;
     }
 }
 
@@ -260,7 +261,7 @@ body.quiz-wp-modal-open {
 
 .quiz-wp-modal--intro .quiz-wp-intro-copy {
     max-width: 350px;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.25;
 }
 
@@ -320,14 +321,14 @@ body.quiz-wp-modal-open {
 }
 
 .quiz-wp-intro-gift-text strong {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     line-height: 1.15;
 }
 
 .quiz-wp-intro-gift-text small {
     color: rgba(255, 255, 255, 0.82);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.15;
 }
 
@@ -343,7 +344,7 @@ body.quiz-wp-modal-open {
 
 .quiz-wp-intro-time {
     color: #a3a3a3;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.3;
     text-align: center;
     margin-top: 3px;
@@ -751,6 +752,11 @@ body.quiz-wp-modal-open {
     border-bottom: 1px solid #d7e0ea;
 }
 
+.quiz-wp-product-card-media.has-image {
+    background-size: cover;
+    background-position: center;
+}
+
 .quiz-wp-product-card-body {
     flex: 1;
     padding: 16px 18px;
@@ -805,7 +811,6 @@ body.quiz-wp-modal-open {
 
 .quiz-wp-product-result-media.has-image {
     background-size: cover;
-    background-position: center;
 }
 
 .quiz-wp-product-result-content {
@@ -1266,6 +1271,7 @@ body.quiz-wp-modal-open {
     padding: 48px 40px;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-content: start;
     gap: 16px;
     text-align: center;
@@ -1379,7 +1385,7 @@ body.quiz-wp-modal-open {
     display: grid;
     align-content: center;
     gap: 0;
-    padding: 98px 34px 72px;
+    padding: 34px;
 }
 
 .quiz-wp-cf7-wrap .wpcf7 {
@@ -1774,7 +1780,7 @@ body.quiz-wp-modal-open {
     .quiz-wp-contact-copy,
     .quiz-wp-contact-form-side,
     .quiz-wp-modal--thanks {
-        padding: 20px 16px;
+        padding: 16px;
     }
 
     .quiz-wp-modal--contact .quiz-wp-title--contact {
@@ -2233,6 +2239,9 @@ body.quiz-wp-modal-open {
         overflow: visible;
         min-height: 100%;
         padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
     }
 
     .quiz-wp-modal--contact .quiz-wp-close {
@@ -2315,6 +2324,7 @@ body.quiz-wp-modal-open {
         min-height: 48px;
         border-radius: 8px;
         font-size: 16px;
+        width: 100%;
     }
 
     .quiz-wp-modal--thanks {
@@ -2447,7 +2457,7 @@ body.quiz-wp-modal-open {
     }
 
     .quiz-wp-modal--intro .quiz-wp-intro-gift-text small {
-        font-size: 11px;
+        font-size: 12px;
     }
 
     .quiz-wp-modal--intro .quiz-wp-start {

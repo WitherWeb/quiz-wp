@@ -658,6 +658,38 @@
             $('#quiz-wp-side-expert-avatar-preview-wrapper').html(renderImagePreview('', 'Превью аватарки отзыва'));
             $('#quiz-wp-select-side-expert-avatar').text('Выбрать аватарку');
         });
+        $(document).on('click', '.quiz-wp-select-product-image', function () {
+            var $button = $(this);
+            var $row = $button.closest('.quiz-wp-product-image-row');
+            var $preview = $row.next('.quiz-wp-product-image-preview-wrapper');
+
+            openMediaFrame(function (media) {
+                $row.find('.quiz-wp-product-image-id').val(media.id);
+                $row.find('.quiz-wp-product-image-url').val(media.url);
+                $preview.html(renderImagePreview(media.url, 'Превью изображения жесткости'));
+                $button.text('Заменить изображение');
+            });
+        });
+
+        $(document).on('input', '.quiz-wp-product-image-url', function () {
+            var $input = $(this);
+            var $row = $input.closest('.quiz-wp-product-image-row');
+            var url = $input.val();
+
+            $row.find('.quiz-wp-product-image-id').val(0);
+            $row.next('.quiz-wp-product-image-preview-wrapper').html(renderImagePreview(url, 'Превью изображения жесткости'));
+            $row.find('.quiz-wp-select-product-image').text(url ? 'Заменить изображение' : 'Выбрать изображение');
+        });
+
+        $(document).on('click', '.quiz-wp-clear-product-image', function () {
+            var $row = $(this).closest('.quiz-wp-product-image-row');
+
+            $row.find('.quiz-wp-product-image-id').val(0);
+            $row.find('.quiz-wp-product-image-url').val('');
+            $row.next('.quiz-wp-product-image-preview-wrapper').html(renderImagePreview('', 'Превью изображения жесткости'));
+            $row.find('.quiz-wp-select-product-image').text('Выбрать изображение');
+        });
+
         function bindSimpleImageField(config) {
             $('#' + config.select).on('click', function () {
                 openMediaFrame(function (media) {

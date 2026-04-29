@@ -114,7 +114,8 @@
 .quiz-wp-field-block textarea,
 .quiz-wp-field-block select,
 .quiz-wp-image-row input[type="text"],
-.quiz-wp-image-row input[type="url"] {
+.quiz-wp-image-row input[type="url"],
+.quiz-wp-product-image-row input[type="url"] {
     border-radius: 12px;
     border-color: #d0d8e2;
     min-height: 42px;
@@ -209,14 +210,16 @@
     box-shadow: inset 0 0 0 1px #d7e4f0;
 }
 
-.quiz-wp-image-row {
+.quiz-wp-image-row,
+.quiz-wp-product-image-row {
     display: grid;
     grid-template-columns: 1fr auto auto;
     gap: 8px;
     align-items: center;
 }
 
-.quiz-wp-image-row .button {
+.quiz-wp-image-row .button,
+.quiz-wp-product-image-row .button {
     min-width: 110px;
 }
 
@@ -258,11 +261,13 @@
     margin-bottom: 16px;
 }
 
-#quiz-wp-settings .quiz-wp-image-row {
+#quiz-wp-settings .quiz-wp-image-row,
+#quiz-wp-settings .quiz-wp-product-image-row {
     grid-template-columns: 1fr;
 }
 
-#quiz-wp-settings .quiz-wp-image-row .button {
+#quiz-wp-settings .quiz-wp-image-row .button,
+#quiz-wp-settings .quiz-wp-product-image-row .button {
     width: 100%;
 }
 

@@ -59,6 +59,7 @@ class Shortcode
             'finalText' => (string) get_post_meta($quiz_id, '_quiz_wp_final_text', true),
             'hasCf7' => $cf7_form_id > 0,
             'productFlow' => '1' === (string) get_post_meta($quiz_id, '_quiz_wp_product_flow', true),
+            'productSettings' => get_post_meta($quiz_id, '_quiz_wp_product_settings', true),
             'discountLabel' => (string) get_post_meta($quiz_id, '_quiz_wp_discount_label', true),
             'privacyUrl' => (string) get_post_meta($quiz_id, '_quiz_wp_privacy_url', true),
             'sideExpert' => [
@@ -114,6 +115,9 @@ class Shortcode
 
         if (! is_array($data['results'])) {
             $data['results'] = [];
+        }
+        if (! is_array($data['productSettings'])) {
+            $data['productSettings'] = [];
         }
 
         wp_enqueue_style('quiz-wp-public');

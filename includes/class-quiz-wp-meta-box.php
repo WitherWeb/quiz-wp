@@ -161,6 +161,10 @@ class Meta_Box
         $final_title = (string) get_post_meta($post->ID, '_quiz_wp_final_title', true);
         $final_text = (string) get_post_meta($post->ID, '_quiz_wp_final_text', true);
         $product_flow = '1' === (string) get_post_meta($post->ID, '_quiz_wp_product_flow', true);
+        $product_settings = get_post_meta($post->ID, '_quiz_wp_product_settings', true);
+        if (! is_array($product_settings)) {
+            $product_settings = [];
+        }
         $cf7_form_id = (int) get_post_meta($post->ID, '_quiz_wp_cf7_form_id', true);
 
         if (! is_array($intro_benefits) || empty($intro_benefits)) {
@@ -349,6 +353,7 @@ class Meta_Box
         echo '<p class="description">';
         echo esc_html__('Рекомендуемые hidden-поля в CF7: [hidden quiz_id], [hidden quiz_title], [hidden quiz_answers], [hidden quiz_result_title].', 'quiz-wp');
         echo '</p>';
+        self::render_product_settings_fields($product_settings);
     }
 
     private static function image_preview_markup(string $url, string $alt): string
@@ -358,6 +363,96 @@ class Meta_Box
         }
 
         return '<div class="quiz-wp-image-preview"><img src="' . esc_url($url) . '" alt="' . esc_attr($alt) . '"></div>';
+    }
+
+    private static function render_product_settings_fields(array $settings): void
+    {
+        $defaults = self::product_settings_defaults();
+        $general = array_merge($defaults['general'], is_array($settings['general'] ?? null) ? $settings['general'] : []);
+        $items = is_array($settings['items'] ?? null) ? $settings['items'] : [];
+
+        echo '<div class="quiz-wp-field-block">';
+        echo '<p><strong>Подбор продукции</strong></p>';
+        echo '<input type="text" class="widefat" name="quiz_wp_product_settings[general][choice_title]" value="' . esc_attr($general['choice_title']) . '" placeholder="Заголовок выбора продукции">';
+        echo '<textarea class="widefat" rows="2" name="quiz_wp_product_settings[general][choice_subtitle]" placeholder="Подзаголовок выбора продукции" style="margin-top:8px;">' . esc_textarea($general['choice_subtitle']) . '</textarea>';
+        echo '<input type="text" class="widefat" name="quiz_wp_product_settings[general][result_title]" value="' . esc_attr($general['result_title']) . '" placeholder="Заголовок результата" style="margin-top:8px;">';
+        echo '<textarea class="widefat" rows="2" name="quiz_wp_product_settings[general][result_lead]" placeholder="Текст под заголовком результата" style="margin-top:8px;">' . esc_textarea($general['result_lead']) . '</textarea>';
+        echo '<input type="text" class="widefat" name="quiz_wp_product_settings[general][recommendation_title]" value="' . esc_attr($general['recommendation_title']) . '" placeholder="Заголовок рекомендации" style="margin-top:8px;">';
+        echo '</div>';
+
+        foreach ($defaults['items'] as $hardness => $default_item) {
+            $item = array_merge($default_item, is_array($items[$hardness] ?? null) ? $items[$hardness] : []);
+            echo '<div class="quiz-wp-field-block">';
+            echo '<p><strong>Жёсткость ' . esc_html((string) $hardness) . '</strong></p>';
+            echo '<input type="text" class="widefat" name="quiz_wp_product_settings[items][' . esc_attr((string) $hardness) . '][title]" value="' . esc_attr($item['title']) . '" placeholder="Название">';
+            echo '<div class="quiz-wp-product-image-row" style="margin-top:8px;">';
+            echo '<input type="hidden" class="quiz-wp-product-image-id" name="quiz_wp_product_settings[items][' . esc_attr((string) $hardness) . '][image_id]" value="' . esc_attr((string) absint($item['image_id'] ?? 0)) . '">';
+            echo '<input type="url" class="widefat quiz-wp-product-image-url" name="quiz_wp_product_settings[items][' . esc_attr((string) $hardness) . '][image_url]" value="' . esc_attr($item['image_url']) . '" placeholder="URL изображения">';
+            echo '<button type="button" class="button quiz-wp-select-product-image">' . esc_html($item['image_url'] ? __('Заменить изображение', 'quiz-wp') : __('Выбрать изображение', 'quiz-wp')) . '</button>';
+            echo '<button type="button" class="button quiz-wp-clear-product-image">' . esc_html__('Очистить', 'quiz-wp') . '</button>';
+            echo '</div>';
+            echo '<div class="quiz-wp-product-image-preview-wrapper">' . wp_kses_post(self::image_preview_markup((string) $item['image_url'], __('Превью изображения жесткости', 'quiz-wp'))) . '</div>';
+            echo '<textarea class="widefat" rows="3" name="quiz_wp_product_settings[items][' . esc_attr((string) $hardness) . '][text]" placeholder="Описание" style="margin-top:8px;">' . esc_textarea($item['text']) . '</textarea>';
+            echo '<input type="text" class="widefat" name="quiz_wp_product_settings[items][' . esc_attr((string) $hardness) . '][weight]" value="' . esc_attr($item['weight']) . '" placeholder="Рекомендуемый вес" style="margin-top:8px;">';
+            echo '<textarea class="widefat" rows="3" name="quiz_wp_product_settings[items][' . esc_attr((string) $hardness) . '][recommendation]" placeholder="Текст рекомендации" style="margin-top:8px;">' . esc_textarea($item['recommendation']) . '</textarea>';
+            echo '</div>';
+        }
+    }
+
+    private static function sanitize_product_settings($settings): array
+    {
+        if (! is_array($settings)) {
+            $settings = [];
+        }
+
+        $defaults = self::product_settings_defaults();
+        $general = is_array($settings['general'] ?? null) ? wp_unslash($settings['general']) : [];
+        $items = is_array($settings['items'] ?? null) ? wp_unslash($settings['items']) : [];
+        $clean = ['general' => [], 'items' => []];
+
+        foreach ($defaults['general'] as $key => $default_value) {
+            $clean['general'][$key] = self::sanitize_rich_text((string) ($general[$key] ?? $default_value));
+        }
+
+        foreach ($defaults['items'] as $hardness => $default_item) {
+            $item = is_array($items[$hardness] ?? null) ? $items[$hardness] : [];
+            $clean['items'][$hardness] = [
+                'title' => self::sanitize_rich_text((string) ($item['title'] ?? $default_item['title'])),
+                'text' => self::sanitize_rich_text((string) ($item['text'] ?? $default_item['text'])),
+                'weight' => sanitize_text_field((string) ($item['weight'] ?? $default_item['weight'])),
+                'image_id' => absint($item['image_id'] ?? 0),
+                'image_url' => esc_url_raw((string) ($item['image_url'] ?? '')),
+                'recommendation' => self::sanitize_rich_text((string) ($item['recommendation'] ?? $default_item['recommendation'])),
+            ];
+        }
+
+        return $clean;
+    }
+
+    private static function product_settings_defaults(): array
+    {
+        $items = [];
+        foreach (['0', '1', '2', '2+', '3'] as $hardness) {
+            $items[$hardness] = [
+                'title' => 'Жёсткость ' . $hardness,
+                'text' => '',
+                'weight' => '',
+                'image_id' => 0,
+                'image_url' => '',
+                'recommendation' => '',
+            ];
+        }
+
+        return [
+            'general' => [
+                'choice_title' => 'Мы подобрали {{count}} варианта',
+                'choice_subtitle' => 'Выберите подходящий вариант Лечебного тракционного мата Детензор 18%',
+                'result_title' => 'Ваш результат',
+                'result_lead' => 'На основании ваших ответов мы подобрали<br>оптимальный вариант —',
+                'recommendation_title' => 'Рекомендация специалиста',
+            ],
+            'items' => $items,
+        ];
     }
 
     private static function sanitize_lines(string $raw): array
@@ -568,6 +663,7 @@ class Meta_Box
         update_post_meta($post_id, '_quiz_wp_final_title', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_final_title'] ?? '')));
         update_post_meta($post_id, '_quiz_wp_final_text', self::sanitize_rich_text((string) wp_unslash($_POST['quiz_wp_final_text'] ?? '')));
         update_post_meta($post_id, '_quiz_wp_product_flow', isset($_POST['quiz_wp_product_flow']) ? '1' : '0');
+        update_post_meta($post_id, '_quiz_wp_product_settings', self::sanitize_product_settings($_POST['quiz_wp_product_settings'] ?? []));
         update_post_meta($post_id, '_quiz_wp_cf7_form_id', absint($_POST['quiz_wp_cf7_form_id'] ?? 0));
     }
 

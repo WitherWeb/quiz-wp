@@ -369,6 +369,9 @@
 
         function renderProductChoice() {
             var options = state.productOptions && state.productOptions.length ? state.productOptions : calculateProductOptions();
+            var productSettings = getProductSettings();
+            var choiceTitle = String(productSettings.general.choice_title || 'Мы подобрали {{count}} варианта').replace('{{count}}', String(options.length));
+            var choiceSubtitle = String(productSettings.general.choice_subtitle || 'Выберите подходящий вариант Лечебного тракционного мата Детензор 18%');
             state.productOptions = options;
 
             app.innerHTML = '' +
@@ -376,8 +379,8 @@
                     '<div class="quiz-wp-modal quiz-wp-modal--product-choice">' +
                         renderCloseButton() +
                         '<div class="quiz-wp-product-choice-head">' +
-                            '<h3 class="quiz-wp-title quiz-wp-title--product-choice">\u041c\u044b \u043f\u043e\u0434\u043e\u0431\u0440\u0430\u043b\u0438 ' + options.length + ' \u0432\u0430\u0440\u0438\u0430\u043d\u0442\u0430</h3>' +
-                            '<p>\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u043e\u0434\u0445\u043e\u0434\u044f\u0449\u0438\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442 \u041b\u0435\u0447\u0435\u0431\u043d\u043e\u0433\u043e \u0442\u0440\u0430\u043a\u0446\u0438\u043e\u043d\u043d\u043e\u0433\u043e \u043c\u0430\u0442\u0430 \u0414\u0435\u0442\u0435\u043d\u0437\u043e\u0440 18%</p>' +
+                            '<h3 class="quiz-wp-title quiz-wp-title--product-choice">' + renderHtml(choiceTitle) + '</h3>' +
+                            '<p>' + renderHtml(choiceSubtitle) + '</p>' +
                         '</div>' +
                         '<div class="quiz-wp-product-grid">' + options.map(renderProductCard).join('') + '</div>' +
                     '</div>' +
@@ -397,10 +400,18 @@
 
         function renderProductResult() {
             var product = state.selectedProduct || (state.productOptions && state.productOptions[0]) || getProductHardnessData('2');
+            var productSettings = getProductSettings();
+            var resultCustomProduct = productSettings.items && productSettings.items[product.hardness] ? productSettings.items[product.hardness] : {};
+            if (resultCustomProduct.recommendation) {
+                product.recommendation = String(resultCustomProduct.recommendation);
+            }
             var thanks = getThanksData();
             var imageUrl = product.imageUrl || thanks.imageUrl || '';
             var imageStyle = imageUrl ? ' style="background-image:url(' + escapeAttr(imageUrl) + ')"' : '';
             var catalogLabel = String(thanks.reviewLabel || '\u041f\u0435\u0440\u0435\u0439\u0442\u0438 \u0432 \u043a\u0430\u0442\u0430\u043b\u043e\u0433');
+            var resultTitle = String(productSettings.general.result_title || '\u0412\u0430\u0448 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442');
+            var resultLead = String(productSettings.general.result_lead || '\u041d\u0430 \u043e\u0441\u043d\u043e\u0432\u0430\u043d\u0438\u0438 \u0432\u0430\u0448\u0438\u0445 \u043e\u0442\u0432\u0435\u0442\u043e\u0432 \u043c\u044b \u043f\u043e\u0434\u043e\u0431\u0440\u0430\u043b\u0438<br>\u043e\u043f\u0442\u0438\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442 —');
+            var recommendationTitle = String(productSettings.general.recommendation_title || '\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u044f \u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442\u0430');
 
             app.innerHTML = '' +
                 '<div class="quiz-wp-shell">' +
@@ -408,11 +419,11 @@
                         renderCloseButton() +
                         '<div class="quiz-wp-product-result-media' + (imageUrl ? ' has-image' : '') + '"' + imageStyle + '></div>' +
                         '<div class="quiz-wp-product-result-content">' +
-                            '<h3 class="quiz-wp-title quiz-wp-title--product-result">\u0412\u0430\u0448 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442</h3>' +
-                            '<p class="quiz-wp-product-result-lead">\u041d\u0430 \u043e\u0441\u043d\u043e\u0432\u0430\u043d\u0438\u0438 \u0432\u0430\u0448\u0438\u0445 \u043e\u0442\u0432\u0435\u0442\u043e\u0432 \u043c\u044b \u043f\u043e\u0434\u043e\u0431\u0440\u0430\u043b\u0438<br>\u043e\u043f\u0442\u0438\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442 —</p>' +
+                            '<h3 class="quiz-wp-title quiz-wp-title--product-result">' + renderHtml(resultTitle) + '</h3>' +
+                            '<p class="quiz-wp-product-result-lead">' + renderHtml(resultLead) + '</p>' +
                             '<h4>' + renderHtml(product.fullName) + '</h4>' +
                             '<div class="quiz-wp-product-recommendation">' +
-                                '<strong>\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u044f \u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442\u0430</strong>' +
+                                '<strong>' + renderHtml(recommendationTitle) + '</strong>' +
                                 '<p>' + renderHtml(product.recommendation) + '</p>' +
                             '</div>' +
                             '<div class="quiz-wp-thanks-bonuses quiz-wp-product-bonuses">' +
@@ -685,6 +696,17 @@
             };
         }
 
+        function getProductSettings() {
+            var settings = data.productSettings || {};
+            var general = settings.general || {};
+            var items = settings.items || {};
+
+            return {
+                general: general,
+                items: items
+            };
+        }
+
         function calculateProductOptions() {
             var params = getProductParams();
             var age = params.age || 35;
@@ -790,23 +812,30 @@
                 }
             };
             var product = map[hardness] || map['2'];
+            var productSettings = getProductSettings();
+            var custom = productSettings.items && productSettings.items[hardness] ? productSettings.items[hardness] : {};
+            var title = String(custom.title || ('\u0416\u0451\u0441\u0442\u043a\u043e\u0441\u0442\u044c ' + hardness));
+            var text = String(custom.text || product.text);
+            var weight = String(custom.weight || product.weight);
+            var recommendation = String(custom.recommendation || ('\u041b\u0435\u0447\u0435\u0431\u043d\u044b\u0439 \u0442\u0440\u0430\u043a\u0446\u0438\u043e\u043d\u043d\u044b\u0439 \u043c\u0430\u0442 \u0414\u0435\u0442\u0435\u043d\u0437\u043e\u0440 18%, \u0416\u0451\u0441\u0442\u043a\u043e\u0441\u0442\u044c ' + hardness + ' — \u043e\u043f\u0442\u0438\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442 \u0434\u043b\u044f \u0432\u0430\u0448\u0435\u0433\u043e \u0432\u0435\u0441\u0430 \u0438 \u0445\u0430\u0440\u0430\u043a\u0442\u0435\u0440\u0430 \u0431\u043e\u043b\u0438. \u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0443\u0435\u043c\u044b\u0439 \u043a\u0443\u0440\u0441: \u043e\u0442 2 \u043d\u0435\u0434\u0435\u043b\u044c \u0435\u0436\u0435\u0434\u043d\u0435\u0432\u043d\u043e\u0433\u043e \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d\u0438\u044f.'));
 
             return {
                 hardness: hardness,
-                title: '\u0416\u0451\u0441\u0442\u043a\u043e\u0441\u0442\u044c ' + hardness,
-                fullName: '\u041b\u0435\u0447\u0435\u0431\u043d\u044b\u0439 \u0442\u0440\u0430\u043a\u0446\u0438\u043e\u043d\u043d\u044b\u0439 \u043c\u0430\u0442 \u0414\u0435\u0442\u0435\u043d\u0437\u043e\u0440 18%,<br>\u0416\u0451\u0441\u0442\u043a\u043e\u0441\u0442\u044c ' + hardness,
-                text: product.text,
-                weight: product.weight,
+                title: title,
+                fullName: '\u041b\u0435\u0447\u0435\u0431\u043d\u044b\u0439 \u0442\u0440\u0430\u043a\u0446\u0438\u043e\u043d\u043d\u044b\u0439 \u043c\u0430\u0442 \u0414\u0435\u0442\u0435\u043d\u0437\u043e\u0440 18%,<br>' + title,
+                text: text,
+                weight: weight,
                 recommendation: '\u041b\u0435\u0447\u0435\u0431\u043d\u044b\u0439 \u0442\u0440\u0430\u043a\u0446\u0438\u043e\u043d\u043d\u044b\u0439 \u043c\u0430\u0442 \u0414\u0435\u0442\u0435\u043d\u0437\u043e\u0440 18%, \u0416\u0451\u0441\u0442\u043a\u043e\u0441\u0442\u044c ' + hardness + ' — \u043e\u043f\u0442\u0438\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442 \u0434\u043b\u044f \u0432\u0430\u0448\u0435\u0433\u043e \u0432\u0435\u0441\u0430 \u0438 \u0445\u0430\u0440\u0430\u043a\u0442\u0435\u0440\u0430 \u0431\u043e\u043b\u0438. \u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0443\u0435\u043c\u044b\u0439 \u043a\u0443\u0440\u0441: \u043e\u0442 2 \u043d\u0435\u0434\u0435\u043b\u044c \u0435\u0436\u0435\u0434\u043d\u0435\u0432\u043d\u043e\u0433\u043e \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d\u0438\u044f.',
-                imageUrl: ''
+                imageUrl: String(custom.image_url || custom.imageUrl || '')
             };
         }
 
         function renderProductCard(product) {
+            var mediaStyle = product.imageUrl ? ' style="background-image:url(' + escapeAttr(product.imageUrl) + ')"' : '';
             return '' +
                 '<article class="quiz-wp-product-card">' +
                     (product.recommended ? '<span class="quiz-wp-product-badge">\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0443\u0435\u043c\u044b\u0439</span>' : '') +
-                    '<div class="quiz-wp-product-card-media"></div>' +
+                    '<div class="quiz-wp-product-card-media' + (product.imageUrl ? ' has-image' : '') + '"' + mediaStyle + '></div>' +
                     '<div class="quiz-wp-product-card-body">' +
                         '<h4>' + renderHtml(product.title) + '</h4>' +
                         '<p>' + renderHtml(product.text) + '</p>' +
